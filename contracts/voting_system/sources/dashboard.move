@@ -27,14 +27,14 @@ public fun register_proposal(self: &mut Dashboard, proposal_id: ID) {
 #[test]
 fun test_module_init() {
     use sui::test_scenario;
-    use voting_system::proposal::{Self};
+
     let creator = @0xCA;
+
     let mut scenario = test_scenario::begin(creator);
     {
         init(scenario.ctx());
-        
     };
-    
+
     scenario.next_tx(creator);
     {
         let dashboard: Dashboard = scenario.take_shared<Dashboard>();
@@ -42,14 +42,5 @@ fun test_module_init() {
         test_scenario::return_shared(dashboard);
     };
 
-    scenario.next_tx(creator);
-    {
-      let title = b"Hi".to_string();
-      let desc = b"There".to_string();
-      proposal::create(title, desc, 2000000000, scenario.ctx());
-    };
     scenario.end();
-    let expectedValue = 1;
-    let functionResult = 1;
-    assert!(functionResult == expectedValue);
 }
