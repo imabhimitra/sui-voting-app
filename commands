@@ -1,0 +1,29 @@
+
+sui client call \
+  --package 0x570c752f89fd830453afa2b57cde514e0ecf22ba90f10424dd358360a84b8282 \
+  --module dashboard \
+  --function create_proposal \
+  --args "Proposal 1" "Proposal description 1" 1770570971 \
+  --gas-budget 100000000
+
+sui client ptb \
+  --move-call 0x570c752f89fd830453afa2b57cde514e0ecf22ba90f10424dd358360a84b8282::dashboard::create_proposal \
+  '"Proposal 2"' \
+  '"Proposal description 2"' \
+  1770570971
+
+sui client ptb \
+  --move-call 0x570c752f89fd830453afa2b57cde514e0ecf22ba90f10424dd358360a84b8282::dashboard::create_proposal \
+  '"Proposal 2"' '"Proposal description 2"' 1770570971 \
+  --move-call 0x570c752f89fd830453afa2b57cde514e0ecf22ba90f10424dd358360a84b8282::dashboard::create_proposal \
+  '"Proposal 3"' '"Proposal description 3"' 1770570971 \
+  --move-call 0x570c752f89fd830453afa2b57cde514e0ecf22ba90f10424dd358360a84b8282::dashboard::create_proposal \
+  '"Proposal 4"' '"Proposal description 4"' 1770570971
+
+sui client ptb \
+  --move-call 0x570c752f89fd830453afa2b57cde514e0ecf22ba90f10424dd358360a84b8282::dashboard::create_proposal \
+  '"Proposal 6"' '"Proposal description 6"' 1768564857 \
+  --split-coins gas "[1000]" \
+  --assign coin \
+  --transfer-objects "[coin]" @0x85b121568cda1b2168ffe1c75f11742c0d91ba20aa10dbcf224c867ce2382005
+  --gas-budget 100000000
