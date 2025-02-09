@@ -7,8 +7,17 @@ public struct Dashboard has key {
 
 }
 
+public struct AdminCap has key {
+    id: UID,
+}
+
 fun init(ctx: &mut TxContext) {
     new(ctx);
+
+    transfer::transfer(
+        AdminCap { id: object::new(ctx)}, 
+        ctx.sender()
+    );
 }
 
 public fun new(ctx: &mut TxContext) {
@@ -22,6 +31,14 @@ public fun new(ctx: &mut TxContext) {
 
 public fun register_proposal(self: &mut Dashboard, proposal_id: ID) {
     self.proposal_ids.push_back(proposal_id);
+}
+
+#[test_only]
+public fun issue_admin_cap(ctx: &mut TxContext) {
+    transfer::transfer(
+        AdminCap { id: object::new(ctx)}, 
+        ctx.sender()
+    );
 }
 
 #[test]

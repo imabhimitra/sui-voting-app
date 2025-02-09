@@ -1,6 +1,8 @@
 
 module voting_system::proposal;
 
+use voting_system::dashboard::AdminCap;
+
 use std::string::String;
 
 // key is ability
@@ -16,6 +18,7 @@ public struct Proposal has key {
 }
 
 public fun create(
+    _admin_cap: &AdminCap,
     title: String,
     description: String,
     expiration: u64,
