@@ -4,15 +4,16 @@ module voting_system::dashboard;
 public struct Dashboard has key {
     id: UID,
     proposal_ids: vector<ID>,
-
 }
 
 public struct AdminCap has key {
     id: UID,
 }
 
-fun init(ctx: &mut TxContext) {
-    new(ctx);
+public struct DASHBOARD has drop {}
+
+fun init(otw: DASHBOARD, ctx: &mut TxContext) {
+    new( otw,ctx);
 
     transfer::transfer(
         AdminCap { id: object::new(ctx)}, 
@@ -20,7 +21,7 @@ fun init(ctx: &mut TxContext) {
     );
 }
 
-public fun new(ctx: &mut TxContext) {
+public fun new(_otw: DASHBOARD, ctx: &mut TxContext) {
     let dashboard = Dashboard {
         id: object::new(ctx),
         proposal_ids: vector[]
@@ -44,12 +45,12 @@ public fun issue_admin_cap(ctx: &mut TxContext) {
 #[test]
 fun test_module_init() {
     use sui::test_scenario;
-
     let creator = @0xCA;
 
     let mut scenario = test_scenario::begin(creator);
     {
-        init(scenario.ctx());
+        let otw = DASHBOARD {};
+        init(otw, scenario.ctx());
     };
 
     scenario.next_tx(creator);
