@@ -1,3 +1,5 @@
+import { useNetworkVariable } from "../config/NetworkConfig";
+
 const PROPOSAL_COUNT = 3;
 
 const ProposalItem = () => {
@@ -10,6 +12,10 @@ const ProposalItem = () => {
 }
 
 const ProposalView = () => {
+    const dashboardId = useNetworkVariable("dashboardId");
+
+    console.log(dashboardId);
+
     return (
         <>
         <h1 className="text-4xl font-semibold mb-8">New Proposals</h1>
