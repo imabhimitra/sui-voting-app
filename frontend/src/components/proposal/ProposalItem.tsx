@@ -5,99 +5,105 @@ import { SuiObjectData } from "@mysten/sui/client";
 import { Proposal } from "../../types";
 import { VoteModal } from "./VoteModal";
 
+
 interface ProposalItemsProps {
-    id: string;
-}
+  id: string;
+};
 
-export const ProposalItem: FC<ProposalItemsProps> = ({ id }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const { data: dataResponse, isPending, error } = useSuiClientQuery(
-        "getObject", {
-        id: id,
-        options: {
-            showContent: true
-        }
+export const ProposalItem: FC<ProposalItemsProps> = ({id}) => {
+  const [isModelOpen, setIsModelOpen] = useState(false);
+  const { data: dataResponse, error, isPending} = useSuiClientQuery(
+    "getObject", {
+      id,
+      options: {
+        showContent: true
+      }
     }
-    );
+  );
 
-    if (isPending) return <EcText centered text="Loading..." />;
-    if (error) return <EcText centered text={`Error: ${error.message}`} isError />;
-    if (!dataResponse.data) return <EcText centered text="No data found" isError />;
+  if (isPending) return <EcText centered text="Loading..."/>;
+  if (error) return <EcText isError text={`Error: ${error.message}`}/>;
+  if (!dataResponse.data) return <EcText text="Not Found"/>;
 
-    const proposal = parseProposal(dataResponse.data);
+  const proposal = parseProposal(dataResponse.data);
 
+  if (!proposal) return <EcText text="No data found!"/>
 
-    if (!proposal) return <EcText centered text="Invalid data" isError />;
+  const expiration = proposal.expiration;
+  // const expiration = 0;
+  const isExpired = isUnixTimeExpired(expiration);
 
-    const expiration = proposal.expiration;
-    //const expiration = 1;
-    const isExpired = isUnixTimeExpired(expiration);
-
-
-    return (
-        <>
-            <div
-                onClick={() => !isExpired && setIsModalOpen(true)}
-                className={`${isExpired? "cursor-not-allowed border-gray-600" : "hover:border-blue-500"} p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800 transition-colors cursor-pointer`}>
-                <p
-                    className={`${isExpired? "text-gray-600" : "text-gray-300"} text-xl font-semibold mb-2"`}>{proposal.title}
-                </p>
-                <p
-                    className={`${isExpired? "text-gray-600" : "text-gray-300"}`}>{proposal.description}
-                </p>
-                <div className="flex items-center justify-between mt-4">
-                    <div className="flex space-x-4">
-                        <div className={`${isExpired? "text-green-800" : "text-green-600"} flex items-center text-green-600`}>
-                            <span className="mr-1">👍🏼</span>
-                            {proposal.votedYesCount}
-                        </div>
-                        <div className={`${isExpired? "text-red-800" : "text-red-600"} flex items-center text-red-600`}>
-                            <span className="mr-1">👎🏼</span>
-                            {proposal.votedNoCount}
-                        </div>
-                    </div>
-                    <div>
-                        <p className={`${isExpired? "text-gray-600" : "text-gray-400"} text-sm `}>
-                            {`⏱️ ${formatUnixTimestamp(expiration)}`}
-                        </p>
-                    </div>
-                </div>
+  return (
+    <>
+      <div
+        onClick={() => !isExpired && setIsModelOpen(true)}
+        className={`${isExpired ? "cursor-not-allowed border-gray-600" : "hover:border-blue-500"}
+          p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800  transition-colors cursor-pointer`}
+      >
+        <p
+          className={`${isExpired ? "text-gray-600" : "text-gray-300"} text-xl font-semibold mb-2`}>{proposal.title}
+        </p>
+        <p
+          className={`${isExpired ? "text-gray-600" : "text-gray-300"} `}>{proposal.description}
+        </p>
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex space-x-4">
+            <div className={`${isExpired ? "text-green-800" : "text-green-600"} flex items-center`}>
+              <span className="mr-1">👍</span>
+              {proposal.votedYesCount}
             </div>
-            <VoteModal
-                onVote={(votedYes: boolean) => alert(`You voted ${votedYes}`)}
-                proposal={proposal}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)} />
-        </>
-    );
+            <div className={`${isExpired ? "text-red-800" : "text-red-600"} flex items-center`}>
+              <span className="mr-1">👎</span>
+              {proposal.votedNoCount}
+            </div>
+          </div>
+          <div>
+            <p className={`${isExpired ? "text-gray-600" : "text-gray-400"} text-sm`}>{formatUnixTime(expiration)}</p>
+          </div>
+        </div>
+      </div>
+      <VoteModal
+        proposal={proposal}
+        isOpen={isModelOpen}
+        onClose={() => setIsModelOpen(false)}
+        onVote={(votedYes: boolean) => {
+          console.log(votedYes);
+          setIsModelOpen(false);
+        }}
+      />
+    </>
+  )
 }
 
 function parseProposal(data: SuiObjectData): Proposal | null {
-    if (data.content?.dataType !== "moveObject") return null;
+  if (data.content?.dataType !== "moveObject") return null;
 
-    const { voted_yes_count, voted_no_count, expiration, ...rest } = data.content.fields as any;
+  const { voted_yes_count, voted_no_count, expiration, ...rest } = data.content.fields as any;
 
-    return {
-        ...rest,
-        votedYesCount: Number(voted_yes_count),
-        votedNoCount: Number(voted_yes_count),
-        expiration: Number(expiration)
-    }
+  return {
+    ...rest,
+    votedYesCount: Number(voted_yes_count),
+    votedNoCount: Number(voted_no_count),
+    expiration: Number(expiration)
+  };
+ }
+
+function isUnixTimeExpired(unixTimeMs: number) {
+  return new Date(unixTimeMs) < new Date();
 }
 
-function isUnixTimeExpired(unixTimeDec: number) {
-    return new Date(unixTimeDec * 1000) < new Date();
-}
+function formatUnixTime(timestampMs: number) {
 
-function formatUnixTimestamp(timestamp: number): string {
-    if (isUnixTimeExpired(timestamp)) return "Expired";
+  if (isUnixTimeExpired(timestampMs)) {
+    return "Expired";
+  }
 
-    return new Date(timestamp * 1000).toLocaleString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-    });
+  return new Date(timestampMs).toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
 }

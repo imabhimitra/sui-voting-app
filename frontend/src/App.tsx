@@ -4,6 +4,7 @@ import ProposalView from "./views/ProposalView";
 import Navbar from "./components/Navbar";
 import WalletView from "./views/WalletView";
 import { useNavigation } from "./providers/navigation/NavigationContext";
+import { ToastContainer } from "react-toastify";
 
 const Pages = () => {
   const {currentPage} = useNavigation();
@@ -22,6 +23,8 @@ const App: React.FC = () => {
   const { darkMode }  = useTheme();
 
   return (
+    <>
+    <ToastContainer/>
     <div className={`${darkMode ? "dark" : ""}`}>
       <div className="min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
         <Navbar/>
@@ -30,6 +33,7 @@ const App: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
