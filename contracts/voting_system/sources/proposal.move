@@ -5,6 +5,7 @@ use voting_system::dashboard::AdminCap;
 use sui::table::{Self, Table};
 use sui::url::{Url, new_unsafe_from_bytes};
 use sui::clock::{Clock};
+use sui::event;
 
 const EDuplicateVote: u64 = 0;
 const EProposalDelisted: u64 = 1;
@@ -35,6 +36,13 @@ public struct VoteProofNFT has key {
     url: Url,
 }
 
+public struct VoteRegistered has copy, drop{
+    proposal_id: ID,
+    voter: address,
+    vote_yes: bool,
+
+}
+
 // === Public Functions ===
 public fun vote(self: &mut Proposal, vote_yes: bool, clock: &Clock, ctx: &mut TxContext) {
     assert!(self.expiration > clock.timestamp_ms(), EProposalExpired);
@@ -48,7 +56,13 @@ public fun vote(self: &mut Proposal, vote_yes: bool, clock: &Clock, ctx: &mut Tx
     };
 
     self.voters.add(ctx.sender(), vote_yes);
-    issue_vote_proof(self, vote_yes, ctx)
+    issue_vote_proof(self, vote_yes, ctx);
+
+    event::emit(VoteRegistered {
+        proposal_id: self.id.to_inner(),
+        voter: ctx.sender(),
+        vote_yes
+    });
 }
 
 // === View Functions ===
@@ -140,6 +154,14 @@ public fun remove(self: Proposal, _admin_cap: &AdminCap) {
     object::delete(id)
 }
 
+public fun set_active_status(self: &mut Proposal, _admin_cap: &AdminCap) {
+    self.change_status(_admin_cap, ProposalStatus::Active);
+}
+
+public fun set_delisted_status(self: &mut Proposal, _admin_cap: &AdminCap) {
+    self.change_status(_admin_cap, ProposalStatus::Delisted);
+}
+
 public fun change_status (
     self: &mut Proposal,
     _admin_cap: &AdminCap,
@@ -170,14 +192,4 @@ fun issue_vote_proof(proposal: &Proposal, vote_yes: bool, ctx: &mut TxContext) {
     };
 
     transfer::transfer(proof, ctx.sender())
-}
-
-#[test_only]
-public fun set_active_status(self: &mut Proposal, _admin_cap: &AdminCap) {
-    self.change_status(_admin_cap, ProposalStatus::Active);
-}
-
-#[test_only]
-public fun set_delisted_status(self: &mut Proposal, _admin_cap: &AdminCap) {
-    self.change_status(_admin_cap, ProposalStatus::Delisted);
 }
